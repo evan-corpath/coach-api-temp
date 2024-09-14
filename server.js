@@ -87,9 +87,9 @@ app.post("/add-message", async (req, res) => {
   const newMessage = req.body;
   // console.log("New Message: ", newMessage);
 
-  const sqlQ = `INSERT INTO Messages (threadId, id, content, sender)
+  const sqlQ = `INSERT INTO Messages (threadId, content, sender)
   VALUES
-  ("${newMessage.threadId}", "${newMessage.id}", ?, "${newMessage.sender}")`;
+  ("${newMessage.threadId}", ?, "${newMessage.sender}")`;
 
   // console.log("Adding message:\n", sqlQ);
 
