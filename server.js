@@ -1,8 +1,10 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const { v4: uuidv4 } = require("uuid");
 
 require("dotenv").config();
+const PORT = process.env.PORT;
 
 const { db } = require("./db");
 
@@ -25,11 +27,8 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 // Post a new message to Messages table
 app.post("/update-thread", async (req, res) => {
   const { threadId, prompt, reply } = req.body;
-  // console.log("ThreadId: ", threadId);
-  // console.log("Reply: ", reply);
-  // console.log("Reply: ", reply);
 
-  const gptRes = await axios("http://localhost:4003/chat", {
+  const gptRes = await axios(`http://localhost:${PORT}/chat`, {
     method: "POST",
     data: {
       message: `I have a prompt from a user, but I want to summarize it in 5 words or fewer
@@ -62,24 +61,41 @@ app.post("/update-thread", async (req, res) => {
 });
 
 app.post("/add-thread", async (req, res) => {
-  const newThread = req.body;
-  // console.log("New Message: ", newMessage);
+  const { userId, threadType } = req.body;
+  const newId = uuidv4();
 
-  const sqlQ = `INSERT INTO Messages (threadId, id, content, sender)
+  const sqlQ = `INSERT INTO Threads (id, userId, threadType, lastQuestion, lastResponse)
   VALUES
-  ("${newMessage.threadId}", "${newMessage.id}", ?, "${newMessage.sender}")`;
+  (?, ?, ?, ?, ?)`;
+  const sqlValues = [
+    newId,
+    userId,
+    threadType,
+    `${threadType} Coach`,
+    "Ask me something",
+  ];
 
-  // console.log("Adding message:\n", sqlQ);
-
-  db.query(sqlQ, [newMessage.content], (err, results, fields) => {
+  db.query(sqlQ, sqlValues, (err, results, fields) => {
     if (err) {
-      console.error("Error posting message to db:\n", err);
+      console.error("Error adding new thread to db:\n", err);
       res.status(500).json({ error: err });
     } else {
-      // console.log(results);
-      res.json({ status: "Successful db message post", results });
+      // ok now we added it, we need to fetch it
+      axios(`http://localhost:${PORT}/threads/${newId}`, {
+        method: "POST",
+        data: { userId },
+      })
+        .then((result) => {
+          res.json({
+            status: "Successfully added and fetched thread",
+            newlyAddedThread: result.data[0],
+          });
+        })
+        .catch((err) => {
+          console.error("Error retrieving thread:\n", err);
+          res.status(500).json({ error: err });
+        });
     }
-    // console.log(results);
   });
 });
 
@@ -98,10 +114,8 @@ app.post("/add-message", async (req, res) => {
       console.error("Error posting message to db:\n", err);
       res.status(500).json({ error: err });
     } else {
-      // console.log(results);
       res.json({ status: "Successful db message post", results });
     }
-    // console.log(results);
   });
 });
 
@@ -150,6 +164,18 @@ app.post("/threads/:threadId", async (req, res) => {
   // }
 });
 
+app.delete("/threads/:threadId", async (req, res) => {
+  const sqlQ = "DELETE FROM Threads WHERE id = ?";
+  // console.log("sqlQ (threads)\n", sqlQ);
+
+  db.query(sqlQ, [req.params.threadId], (err, results, fields) => {
+    if (err) {
+      res.status(500).json({ error: err });
+    }
+    res.json({ status: "Successfully delete thread", results });
+  });
+});
+
 app.post("/chat", async (req, res) => {
   const { message } = req.body;
   // console.log("Message: ", message);
@@ -181,6 +207,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running at http://localhost:${process.env.PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
