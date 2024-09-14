@@ -3,10 +3,10 @@ const mysql = require("mysql2");
 // Create a connection object
 const db = mysql.createConnection({
   host: "127.0.0.1",
-  // user: "accessapi",
-  // password: "pw",
-  user: "root",
-  password: "",
+  user: "accessapi",
+  password: "pw",
+  // user: "root",
+  // password: "",
   database: "sellness",
 });
 
