@@ -1,5 +1,5 @@
 -- Create the database
-DROP DATABASE sellness;
+DROP DATABASE IF EXISTS sellness;
 
 CREATE DATABASE IF NOT EXISTS sellness;
 USE sellness;
