@@ -61,6 +61,28 @@ app.post("/update-thread", async (req, res) => {
   );
 });
 
+app.post("/add-thread", async (req, res) => {
+  const newThread = req.body;
+  // console.log("New Message: ", newMessage);
+
+  const sqlQ = `INSERT INTO Messages (threadId, id, content, sender)
+  VALUES
+  ("${newMessage.threadId}", "${newMessage.id}", ?, "${newMessage.sender}")`;
+
+  // console.log("Adding message:\n", sqlQ);
+
+  db.query(sqlQ, [newMessage.content], (err, results, fields) => {
+    if (err) {
+      console.error("Error posting message to db:\n", err);
+      res.status(500).json({ error: err });
+    } else {
+      // console.log(results);
+      res.json({ status: "Successful db message post", results });
+    }
+    // console.log(results);
+  });
+});
+
 app.post("/add-message", async (req, res) => {
   const newMessage = req.body;
   // console.log("New Message: ", newMessage);
