@@ -2,4 +2,4 @@
 
 `sudo mysql -uroot < sampleData.sql` to reset local mysql db values
 
-This is temporary API for the AI Coach component in Corpath. It's a Node-Express server connected to a local MySQL server.
+This is temporary REST API for the AI Coach component in Corpath. It's a Node-Express server connected to a local MySQL server.
